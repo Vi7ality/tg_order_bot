@@ -1,5 +1,6 @@
 const { Telegraf } = require("telegraf");
 const path = require("path");
+const fs = require("fs");
 const {
   startHandler,
   orderInitHandler,
@@ -15,8 +16,6 @@ require("dotenv").config();
 
 const { APP_TOKEN } = process.env;
 const bot = new Telegraf(APP_TOKEN);
-
-const userOrders = {};
 
 bot.start(startHandler);
 
