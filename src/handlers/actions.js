@@ -2,13 +2,15 @@ const redis = require("../config/redis");
 const { Markup } = require("telegraf");
 const fs = require("fs");
 
-const groupFilePath = "../groupId.json";
+const groupFilePath = "./src/groupId.json";
 
 const loadGroupId = () => {
   try {
     const data = fs.readFileSync(groupFilePath, "utf8");
-    return JSON.parse(data).groupId;
+    const { groupId } = JSON.parse(data);
+    return groupId;
   } catch (err) {
+    console.log(err);
     return null;
   }
 };
