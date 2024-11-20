@@ -13,7 +13,7 @@ const {
 
 require("dotenv").config();
 
-const { APP_TOKEN, ADMIN_ID } = process.env;
+const { APP_TOKEN } = process.env;
 const bot = new Telegraf(APP_TOKEN);
 
 const userOrders = {};

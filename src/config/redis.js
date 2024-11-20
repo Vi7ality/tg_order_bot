@@ -1,11 +1,8 @@
 const Redis = require("ioredis");
+require("dotenv").config();
+const { REDIS_TOKEN } = process.env;
 
-const redis = new Redis({
-  host: "127.0.0.1", // Замініть, якщо потрібно
-  port: 6379,
-});
-
-redis.on("error", (err) => console.error("Redis Error:", err));
-redis.on("connect", () => console.log("Connected to Redis"));
+const redis = new Redis(`rediss://default:${REDIS_TOKEN}@fun-sheep-20026.upstash.io:6379`);
+redis.set("foo", "bar");
 
 module.exports = redis;
