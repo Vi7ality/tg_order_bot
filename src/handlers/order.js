@@ -1,4 +1,4 @@
-const userOrders = {};
+const { Markup } = require("telegraf");
 
 const orderInitHandler = async (ctx) => {
   try {
@@ -61,17 +61,13 @@ const orderCreateHandler = async (ctx) => {
 
           ctx.reply(
             `Перевірте деталі вашого замовлення:\n\n` +
-              `👤 Кого шукаєте: ${order.role}\n` +
+              `👤 Шукаю: ${order.role}\n` +
               `👥 Кількість людей: ${order.peopleCount}\n` +
               `⏳ Годин роботи: ${order.hours}\n` +
               `💵 Оплата: ${order.payment} грн/год\n` +
               `📍 Локація: ${order.location}\n` +
               `📞 Контакт: ${order.contact}`,
-            Markup.inlineKeyboard([
-              Markup.button.callback("✅ Оприлюднити", `publish_${userId}`),
-              Markup.button.callback("✏️ Редагувати", `edit_${userId}`),
-              Markup.button.callback("❌ Видалити", `delete_${userId}`),
-            ])
+            Markup.inlineKeyboard([[Markup.button.callback("✅ Оприлюднити", `publish_${userId}`)]])
           );
           break;
 
@@ -82,7 +78,7 @@ const orderCreateHandler = async (ctx) => {
       }
     }
   } catch (error) {
-    console.error("Помилка створення запиту");
+    console.error("Помилка створення запиту", error);
   }
 };
 

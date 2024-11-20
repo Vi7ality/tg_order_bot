@@ -17,7 +17,7 @@ const publishOrder = async (ctx) => {
     ctx.telegram.sendMessage(
       groupChatId,
       `Нове замовлення:\n\n` +
-        `👤 Кого шукаєте: ${order.role}\n` +
+        `👤 Шукаю: ${order.role}\n` +
         `👥 Кількість людей: ${order.peopleCount}\n` +
         `⏳ Годин роботи: ${order.hours}\n` +
         `💵 Оплата: ${order.payment} грн/год\n` +
@@ -30,6 +30,33 @@ const publishOrder = async (ctx) => {
     delete userOrders[userId];
   } else {
     ctx.reply("Група, в яку додано бота, не знайдена або замовлення не знайдено.");
+  }
+};
+
+const editOrder = async (ctx) => {
+  console.log("order edit");
+  try {
+    const field = ctx.match[1];
+    const userId = ctx.match[2];
+    const order = userOrders[userId];
+
+    if (order) {
+      order.editingField = field;
+      const fieldNameMap = {
+        role: "Кого шукаєте",
+        peopleCount: "Кількість людей",
+        hours: "Годин роботи",
+        payment: "Оплата",
+        location: "Локація",
+        contact: "Контакт",
+      };
+
+      ctx.reply(`Вкажіть нове значення для поля: ${fieldNameMap[field] || field}`);
+    } else {
+      ctx.reply("Замовлення не знайдено.");
+    }
+  } catch (error) {
+    console.error("Помилка редагування поля:", error);
   }
 };
 
@@ -62,4 +89,4 @@ const rejectOrder = async (ctx) => {
   ctx.editMessageText(`Відгук користувача @${workerUsername} відхилено.`);
 };
 
-module.exports = { publishOrder, respondOrder, confirmOrder, rejectOrder };
+module.exports = { publishOrder, editOrder, respondOrder, confirmOrder, rejectOrder };

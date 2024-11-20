@@ -1,6 +1,12 @@
 const startHandler = require("./start");
 const { orderInitHandler, orderCreateHandler } = require("./order.js");
-const { publishOrder, respondOrder, confirmOrder, rejectOrder } = require("./actions.js");
+const {
+  publishOrder,
+  respondOrder,
+  confirmOrder,
+  rejectOrder,
+  editOrder,
+} = require("./actions.js");
 
 module.exports = {
   startHandler,
@@ -10,4 +16,5 @@ module.exports = {
   respondOrder,
   confirmOrder,
   rejectOrder,
+  editOrder,
 };

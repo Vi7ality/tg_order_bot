@@ -1,10 +1,11 @@
-const { Telegraf, Markup } = require("telegraf");
+const { Telegraf } = require("telegraf");
 const path = require("path");
 const {
   startHandler,
   orderInitHandler,
   orderCreateHandler,
   publishOrder,
+  editOrder,
   respondOrder,
   confirmOrder,
   rejectOrder,
@@ -53,6 +54,8 @@ const loadGroupId = () => {
 let groupChatId = loadGroupId();
 
 bot.action(/^publish_(\d+)$/, publishOrder);
+
+bot.action(/^edit(\d+)$/, editOrder);
 
 bot.action(/^respond_(\d+)$/, respondOrder);
 
