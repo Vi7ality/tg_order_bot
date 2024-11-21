@@ -1,3 +1,5 @@
+const { loadGroupId, saveGroupId } = require("../services");
+
 const leftChatHandler = (ctx) => {
   const groupChatId = loadGroupId();
   const removedGroupId = ctx.chat.id;

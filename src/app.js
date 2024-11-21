@@ -4,12 +4,11 @@ const fs = require("fs");
 const {
   startHandler,
   orderInitHandler,
-  orderCreateHandler,
+  orderProcessHandler,
   publishOrderHandler,
-  editOrder,
   respondOrderHandler,
   confirmOrderHandler,
-  rejectOrder,
+  rejectOrderHandler,
   newChatHandler,
   leftChatHandler,
 } = require("./handlers");
@@ -21,23 +20,23 @@ const bot = new Telegraf(APP_TOKEN);
 
 bot.start(startHandler);
 
-bot.hears("📝 Створити замовлення", orderInitHandler);
-
-bot.on("text", orderCreateHandler);
-
 bot.on("new_chat_members", newChatHandler);
 
 bot.on("left_chat_member", leftChatHandler);
 
+bot.hears("📝 Створити замовлення", orderInitHandler);
+
+bot.on("text", orderProcessHandler);
+
 bot.action(/^publish_(\d+)$/, publishOrderHandler);
 
-bot.action(/^edit(\d+)$/, editOrder);
+// bot.action(/^edit(\d+)$/, editOrder);
 
 bot.action(/^respond_(\d+)$/, respondOrderHandler);
 
 bot.action(/^confirm_(.+)$/, confirmOrderHandler);
 
-bot.action(/^reject_(.+)$/, rejectOrder);
+bot.action(/^reject_(.+)$/, rejectOrderHandler);
 
 bot
   .launch()

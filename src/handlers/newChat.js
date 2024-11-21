@@ -1,4 +1,6 @@
+const { saveGroupId } = require("../services");
 const newChatHandler = (ctx) => {
+  console.log("added");
   const newMembers = ctx.message.new_chat_members;
   const botAdded = newMembers.some((member) => member.id === ctx.botInfo.id);
 

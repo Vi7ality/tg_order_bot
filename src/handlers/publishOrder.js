@@ -6,7 +6,6 @@ let groupChatId = loadGroupId();
 
 const publishOrderHandler = async (ctx) => {
   const userId = ctx.match[1];
-  console.log("userId", userId);
 
   try {
     const order = await redis.hgetall(`order:${userId}`);
