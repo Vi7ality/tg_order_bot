@@ -29,14 +29,13 @@ const orderInitHandler = async (ctx) => {
 
 const publishOrder = async (ctx) => {
   const userId = ctx.match[1];
+  console.log("userId", userId);
 
   try {
     const order = await redis.hgetall(`order:${userId}`);
 
     if (order && order.step === "6") {
       const { role, peopleCount, hours, payment, location, contact } = order;
-      console.log("order", order);
-      console.log("groupID", groupChatId);
 
       if (role && peopleCount && hours && payment && location && contact && groupChatId) {
         await ctx.telegram.sendMessage(
@@ -52,7 +51,7 @@ const publishOrder = async (ctx) => {
           Markup.inlineKeyboard([Markup.button.callback("Відгукнутись", `respond_${userId}`)])
         );
         ctx.editMessageText("Ваше замовлення опубліковано.");
-        await redis.del(`order:${userId}`); // Видалити замовлення після публікації
+        // await redis.del(`order:${userId}`); // Видалити замовлення після публікації
       } else {
         ctx.reply("Замовлення неповне або група не знайдена.");
       }
@@ -66,7 +65,6 @@ const publishOrder = async (ctx) => {
 };
 
 const editOrder = async (ctx) => {
-  console.log("order edit");
   try {
     const field = ctx.match[1];
     const userId = ctx.match[2];
@@ -97,35 +95,76 @@ const editOrder = async (ctx) => {
 const respondOrder = async (ctx) => {
   const customerId = ctx.match[1];
   const workerUsername = ctx.from.username;
+  const workerId = ctx.update.callback_query.from.id;
+  const messageId = ctx.callbackQuery.message.message_id;
 
   if (workerUsername) {
     try {
+      await redis.hset(`order:${customerId}`, "messageId", messageId);
+
       await ctx.telegram.sendMessage(
         customerId,
-        `<На ваше замовлення відгукнувся користувач @${workerUsername}. Ви можете підтвердити або відхилити відгук>.`,
+        `На ваше замовлення відгукнувся користувач @${workerUsername}. Ви можете підтвердити або відхилити відгук.`,
         Markup.inlineKeyboard([
-          Markup.button.callback("Підтвердити", `confirm_${workerUsername}`),
-          Markup.button.callback("Відхилити", `reject_${workerUsername}`),
+          Markup.button.callback("Підтвердити", `confirm_${customerId}_${workerUsername}`),
+          Markup.button.callback("Відхилити", `reject_${customerId}_${workerUsername}`),
         ])
       );
-      ctx.reply("Ваш відгук відправлено замовнику.");
+      await ctx.telegram.sendMessage(workerId, "Ваш відгук відправлено замовнику.");
     } catch (error) {
       console.error("Помилка відправки повідомлення замовнику:", error);
-      ctx.reply("Сталася помилка при відправці відгуку.");
+      await ctx.telegram.sendMessage(customerId, "Сталася помилка при відправці відгуку.");
     }
-  } else {
-    ctx.reply("Ви повинні мати імʼя користувача у Telegram, щоб відгукнутись.");
   }
 };
 
 const confirmOrder = async (ctx) => {
-  const workerUsername = ctx.match[1];
-  ctx.editMessageText(`Відгук користувача @${workerUsername} підтверджено. Замовлення закрито.`);
+  const [customerId, workerUsername] = ctx.match.slice(1); // Отримуємо customerId і workerUsername
+
+  try {
+    // Отримуємо message_id та groupChatId
+    console.log("ctx", ctx);
+    console.log("customerId", customerId);
+    const orderDetails = await redis.hgetall(`order:${customerId}`);
+    const messageId = orderDetails.messageId;
+    console.log("orderDetails", orderDetails);
+
+    if (!messageId || !groupChatId) {
+      throw new Error("Дані про замовлення або групу відсутні.");
+    }
+
+    // Формуємо текст замовлення
+    const updatedOrderText =
+      `Нове замовлення:\n\n` +
+      `${orderDetails.role ? `👤 Шукаю: ${orderDetails.role}\n` : ""}` +
+      `${orderDetails.peopleCount ? `👥 Кількість людей: ${orderDetails.peopleCount}\n` : ""}` +
+      `${orderDetails.hours ? `⏳ Годин роботи: ${orderDetails.hours}\n` : ""}` +
+      `${orderDetails.payment ? `💵 Оплата: ${orderDetails.payment} грн/год\n` : ""}` +
+      `${orderDetails.location ? `📍 Локація: ${orderDetails.location}\n` : ""}` +
+      `${orderDetails.contact ? `📞 Контакт: ${orderDetails.contact}\n` : ""}\n` +
+      `Замовлення закрито.`;
+
+    // Редагуємо повідомлення в групі
+    await ctx.telegram.editMessageText(groupChatId, messageId, null, updatedOrderText);
+
+    // Підтверджуємо відгук у приватному чаті
+    await ctx.editMessageText(
+      `Відгук користувача @${workerUsername} підтверджено. Замовлення закрито.`
+    );
+  } catch (error) {
+    console.error("Помилка підтвердження відгуку:", error);
+    await ctx.reply("Сталася помилка при підтвердженні замовлення.");
+  }
 };
 
 const rejectOrder = async (ctx) => {
-  const workerUsername = ctx.match[1];
-  ctx.editMessageText(`Відгук користувача @${workerUsername} відхилено.`);
+  const [customerId, workerUsername] = ctx.match.slice(1); // Отримуємо customerId і workerUsername
+  try {
+    ctx.editMessageText(`Відгук користувача @${workerUsername} відхилено.`);
+  } catch (error) {
+    console.error("Помилка відхилення відгуку:", error);
+    ctx.reply("Сталася помилка при відхиленні замовлення.");
+  }
 };
 
 module.exports = {
