@@ -1,6 +1,6 @@
 const { Telegraf } = require("telegraf");
+const { saveGroupId } = require("./services");
 
-const fs = require("fs");
 const {
   startHandler,
   orderInitHandler,
@@ -21,6 +21,18 @@ const bot = new Telegraf(APP_TOKEN);
 bot.start(startHandler);
 
 bot.on("new_chat_members", newChatHandler);
+bot.on("my_chat_member", (ctx) => {
+  const chatId = ctx.chat.id;
+  const status = ctx.myChatMember.new_chat_member.status;
+
+  // Handle when the bot is added to a channel as an administrator
+  if (ctx.chat.type === "channel" && status === "administrator") {
+    saveGroupId(chatId);
+    console.log(`Bot added to channel! Channel ID: ${chatId}`);
+  }
+});
+
+// bot.on("message", newChatHandler);
 
 bot.on("left_chat_member", leftChatHandler);
 
