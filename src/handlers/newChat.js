@@ -1,29 +1,31 @@
-const { saveGroupId } = require("../services");
+const { saveGroupId, loadGroupId } = require("../services");
+const savedGroupId = loadGroupId();
+console.log("savedGroupId", savedGroupId);
 
 const newChatHandler = (ctx) => {
-  console.log("Checking new chat members or added bot...");
-
   const newMembers = ctx.message?.new_chat_members;
+  const groupChatId = ctx.chat.id;
 
-  // Check if bot is added via new chat members (groups/supergroups)
-  if (newMembers) {
+  if (newMembers && !savedGroupId) {
     const botAdded = newMembers.some((member) => member.id === ctx.botInfo.id);
 
     if (botAdded && (ctx.chat.type === "supergroup" || ctx.chat.type === "group")) {
-      const groupChatId = ctx.chat.id;
       saveGroupId(groupChatId);
       console.log(`Bot додано в групу! ID групи: ${groupChatId}`);
     }
   }
 
-  // Handle channels
   if (ctx.chat.type === "channel") {
-    console.log(`Bot added to a channel! ID каналу: ${ctx.chat.id}`);
-    const channelId = ctx.chat.id;
-    saveGroupId(channelId);
+    const status = ctx.myChatMember.new_chat_member.status;
+    if (status === "administrator" && !savedGroupId) {
+      saveGroupId(groupChatId);
+      console.log(`Bot added to channel! Channel ID: ${groupChatId}`);
+    }
+    if (status === "kicked" && savedGroupId === groupChatId) {
+      saveGroupId(null);
+      console.log(`Бот покинув канал! ID каналу: ${groupChatId}`);
+    }
   }
 };
-
-module.exports = newChatHandler;
 
 module.exports = newChatHandler;
