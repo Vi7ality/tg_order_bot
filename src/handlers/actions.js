@@ -51,7 +51,6 @@ const publishOrder = async (ctx) => {
           Markup.inlineKeyboard([Markup.button.callback("Відгукнутись", `respond_${userId}`)])
         );
         ctx.editMessageText("Ваше замовлення опубліковано.");
-        // await redis.del(`order:${userId}`); // Видалити замовлення після публікації
       } else {
         ctx.reply("Замовлення неповне або група не знайдена.");
       }
@@ -106,11 +105,14 @@ const respondOrder = async (ctx) => {
         customerId,
         `На ваше замовлення відгукнувся користувач @${workerUsername}. Ви можете підтвердити або відхилити відгук.`,
         Markup.inlineKeyboard([
-          Markup.button.callback("Підтвердити", `confirm_${customerId}_${workerUsername}`),
-          Markup.button.callback("Відхилити", `reject_${customerId}_${workerUsername}`),
+          Markup.button.callback("✅Підтвердити", `confirm_${customerId}_${workerUsername}`),
+          Markup.button.callback("❌Відхилити", `reject_${customerId}_${workerUsername}`),
         ])
       );
-      await ctx.telegram.sendMessage(workerId, "Ваш відгук відправлено замовнику.");
+      await ctx.telegram.sendMessage(
+        workerId,
+        "✅Ваш відгук відправлено замовнику. У випадку підтвердження замовник з вами зв'яжеться."
+      );
     } catch (error) {
       console.error("Помилка відправки повідомлення замовнику:", error);
       await ctx.telegram.sendMessage(customerId, "Сталася помилка при відправці відгуку.");
@@ -119,21 +121,17 @@ const respondOrder = async (ctx) => {
 };
 
 const confirmOrder = async (ctx) => {
-  const [customerId, workerUsername] = ctx.match.slice(1); // Отримуємо customerId і workerUsername
+  const [data] = ctx.match.slice(1);
+  const [userId, workerUsername] = data.split("_");
 
   try {
-    // Отримуємо message_id та groupChatId
-    console.log("ctx", ctx);
-    console.log("customerId", customerId);
-    const orderDetails = await redis.hgetall(`order:${customerId}`);
+    const orderDetails = await redis.hgetall(`order:${userId}`);
     const messageId = orderDetails.messageId;
-    console.log("orderDetails", orderDetails);
 
     if (!messageId || !groupChatId) {
       throw new Error("Дані про замовлення або групу відсутні.");
     }
 
-    // Формуємо текст замовлення
     const updatedOrderText =
       `Нове замовлення:\n\n` +
       `${orderDetails.role ? `👤 Шукаю: ${orderDetails.role}\n` : ""}` +
@@ -144,13 +142,12 @@ const confirmOrder = async (ctx) => {
       `${orderDetails.contact ? `📞 Контакт: ${orderDetails.contact}\n` : ""}\n` +
       `Замовлення закрито.`;
 
-    // Редагуємо повідомлення в групі
     await ctx.telegram.editMessageText(groupChatId, messageId, null, updatedOrderText);
 
-    // Підтверджуємо відгук у приватному чаті
     await ctx.editMessageText(
-      `Відгук користувача @${workerUsername} підтверджено. Замовлення закрито.`
+      `✅Відгук користувача @${workerUsername} підтверджено. Замовлення закрито.`
     );
+    await redis.del(`order:${userId}`);
   } catch (error) {
     console.error("Помилка підтвердження відгуку:", error);
     await ctx.reply("Сталася помилка при підтвердженні замовлення.");
@@ -158,9 +155,9 @@ const confirmOrder = async (ctx) => {
 };
 
 const rejectOrder = async (ctx) => {
-  const [customerId, workerUsername] = ctx.match.slice(1); // Отримуємо customerId і workerUsername
+  const [userId, workerUsername] = data.split("_");
   try {
-    ctx.editMessageText(`Відгук користувача @${workerUsername} відхилено.`);
+    ctx.editMessageText(`❌Відгук користувача @${workerUsername} відхилено.`);
   } catch (error) {
     console.error("Помилка відхилення відгуку:", error);
     ctx.reply("Сталася помилка при відхиленні замовлення.");
