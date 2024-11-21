@@ -1,5 +1,6 @@
 const { Telegraf } = require("telegraf");
 const path = require("path");
+const fs = require("fs");
 const {
   startHandler,
   orderInitHandler,
@@ -13,10 +14,8 @@ const {
 
 require("dotenv").config();
 
-const { APP_TOKEN, ADMIN_ID } = process.env;
+const { APP_TOKEN } = process.env;
 const bot = new Telegraf(APP_TOKEN);
-
-const userOrders = {};
 
 bot.start(startHandler);
 
@@ -31,6 +30,15 @@ const saveGroupId = (groupId) => {
   fs.writeFileSync(groupFilePath, data, "utf8");
 };
 
+const loadGroupId = () => {
+  try {
+    const data = fs.readFileSync(groupFilePath, "utf8");
+    return JSON.parse(data).groupId;
+  } catch (err) {
+    return null;
+  }
+};
+
 bot.on("new_chat_members", (ctx) => {
   const newMembers = ctx.message.new_chat_members;
   const botAdded = newMembers.some((member) => member.id === ctx.botInfo.id);
@@ -42,16 +50,14 @@ bot.on("new_chat_members", (ctx) => {
   }
 });
 
-const loadGroupId = () => {
-  try {
-    const data = fs.readFileSync(groupFilePath, "utf8");
-    return JSON.parse(data).groupId;
-  } catch (err) {
-    return null;
+bot.on("left_chat_member", (ctx) => {
+  const groupChatId = loadGroupId();
+  const removedGroupId = ctx.chat.id;
+  if (groupChatId && groupChatId === removedGroupId) {
+    saveGroupId({});
+    console.log(`Бот видалено з групи: ${removedGroupId}`);
   }
-};
-
-let groupChatId = loadGroupId();
+});
 
 bot.action(/^publish_(\d+)$/, publishOrder);
 
