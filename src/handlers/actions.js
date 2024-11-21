@@ -109,10 +109,7 @@ const respondOrder = async (ctx) => {
           Markup.button.callback("❌Відхилити", `reject_${customerId}_${workerUsername}`),
         ])
       );
-      await ctx.telegram.sendMessage(
-        workerId,
-        "✅Ваш відгук відправлено замовнику. У випадку підтвердження замовник з вами зв'яжеться."
-      );
+      await ctx.telegram.sendMessage(workerId, "✅Ваш відгук відправлено замовнику.");
     } catch (error) {
       console.error("Помилка відправки повідомлення замовнику:", error);
       await ctx.telegram.sendMessage(customerId, "Сталася помилка при відправці відгуку.");
