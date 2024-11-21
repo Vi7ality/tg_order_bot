@@ -1,15 +1,17 @@
 const { Telegraf } = require("telegraf");
-const path = require("path");
+
 const fs = require("fs");
 const {
   startHandler,
   orderInitHandler,
   orderCreateHandler,
-  publishOrder,
+  publishOrderHandler,
   editOrder,
-  respondOrder,
-  confirmOrder,
+  respondOrderHandler,
+  confirmOrderHandler,
   rejectOrder,
+  newChatHandler,
+  leftChatHandler,
 } = require("./handlers");
 
 require("dotenv").config();
@@ -23,49 +25,17 @@ bot.hears("📝 Створити замовлення", orderInitHandler);
 
 bot.on("text", orderCreateHandler);
 
-const groupFilePath = path.join(__dirname, "groupId.json");
+bot.on("new_chat_members", newChatHandler);
 
-const saveGroupId = (groupId) => {
-  const data = JSON.stringify({ groupId });
-  fs.writeFileSync(groupFilePath, data, "utf8");
-};
+bot.on("left_chat_member", leftChatHandler);
 
-const loadGroupId = () => {
-  try {
-    const data = fs.readFileSync(groupFilePath, "utf8");
-    return JSON.parse(data).groupId;
-  } catch (err) {
-    return null;
-  }
-};
-
-bot.on("new_chat_members", (ctx) => {
-  const newMembers = ctx.message.new_chat_members;
-  const botAdded = newMembers.some((member) => member.id === ctx.botInfo.id);
-
-  if (botAdded && (ctx.chat.type === "supergroup" || ctx.chat.type === "group")) {
-    const groupChatId = ctx.chat.id;
-    saveGroupId(groupChatId);
-    console.log(`Bot додано в групу! ID групи: ${groupChatId}`);
-  }
-});
-
-bot.on("left_chat_member", (ctx) => {
-  const groupChatId = loadGroupId();
-  const removedGroupId = ctx.chat.id;
-  if (groupChatId && groupChatId === removedGroupId) {
-    saveGroupId({});
-    console.log(`Бот видалено з групи: ${removedGroupId}`);
-  }
-});
-
-bot.action(/^publish_(\d+)$/, publishOrder);
+bot.action(/^publish_(\d+)$/, publishOrderHandler);
 
 bot.action(/^edit(\d+)$/, editOrder);
 
-bot.action(/^respond_(\d+)$/, respondOrder);
+bot.action(/^respond_(\d+)$/, respondOrderHandler);
 
-bot.action(/^confirm_(.+)$/, confirmOrder);
+bot.action(/^confirm_(.+)$/, confirmOrderHandler);
 
 bot.action(/^reject_(.+)$/, rejectOrder);
 

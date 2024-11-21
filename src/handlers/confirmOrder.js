@@ -1,10 +1,9 @@
 const redis = require("../config/redis");
-const { Markup } = require("telegraf");
 const { loadGroupId } = require("../services/index");
 
 let groupChatId = loadGroupId();
 
-const confirmOrder = async (ctx) => {
+const confirmOrderHandler = async (ctx) => {
   const [data] = ctx.match.slice(1);
   const [userId, workerUsername] = data.split("_");
 
@@ -38,12 +37,4 @@ const confirmOrder = async (ctx) => {
   }
 };
 
-const rejectOrder = async (ctx) => {
-  const [userId, workerUsername] = data.split("_");
-  try {
-    ctx.editMessageText(`❌Відгук користувача @${workerUsername} відхилено.`);
-  } catch (error) {
-    console.error("Помилка відхилення відгуку:", error);
-    ctx.reply("Сталася помилка при відхиленні замовлення.");
-  }
-};
+module.exports = confirmOrderHandler;
