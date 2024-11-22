@@ -1,4 +1,4 @@
-const { saveGroupId, loadGroupId } = require("../services");
+const { saveGroupId, loadGroupId, deleteGroupId } = require("../services");
 
 const newChatHandler = async (ctx) => {
   const savedGroupId = await loadGroupId();
@@ -20,8 +20,8 @@ const newChatHandler = async (ctx) => {
       await saveGroupId(groupChatId);
       console.log(`Bot added to channel! Channel ID: ${groupChatId}`);
     }
-    if (status === "kicked" && savedGroupId === groupChatId) {
-      await saveGroupId(null);
+    if (status === "kicked" && savedGroupId == groupChatId) {
+      await deleteGroupId();
       console.log(`Бот покинув канал! ID каналу: ${groupChatId}`);
     }
   }
