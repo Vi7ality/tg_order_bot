@@ -2,7 +2,7 @@
   "name": "telegram_order-bot",
   "version": "1.0.0",
   "description": "",
-  "main": "bot.js",
+  "main": "app.js",
   "scripts": {
     "start": "node src/app.js",
     "dev": "nodemon src/app.js"
