@@ -1,7 +1,3 @@
-const { loadGroupId } = require("../services/index");
-
-let groupChatId = loadGroupId();
-
 const rejectOrderHandler = async (ctx) => {
   const [userId, workerUsername] = data.split("_");
   try {

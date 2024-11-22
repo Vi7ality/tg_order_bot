@@ -2,9 +2,8 @@ const redis = require("../config/redis");
 const { Markup } = require("telegraf");
 const { loadGroupId } = require("../services/index");
 
-let groupChatId = loadGroupId();
-
 const publishOrderHandler = async (ctx) => {
+  const groupChatId = await loadGroupId();
   const userId = ctx.match[1];
 
   try {

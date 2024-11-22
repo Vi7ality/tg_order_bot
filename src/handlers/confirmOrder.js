@@ -1,9 +1,8 @@
 const redis = require("../config/redis");
 const { loadGroupId } = require("../services/index");
 
-let groupChatId = loadGroupId();
-
 const confirmOrderHandler = async (ctx) => {
+  const groupChatId = await loadGroupId();
   const [data] = ctx.match.slice(1);
   const [userId, workerUsername] = data.split("_");
 
