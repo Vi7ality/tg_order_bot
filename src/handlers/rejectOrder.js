@@ -1,4 +1,5 @@
 const rejectOrderHandler = async (ctx) => {
+  const [data] = ctx.match.slice(1);
   const [userId, workerUsername] = data.split("_");
   try {
     ctx.editMessageText(`❌Відгук користувача @${workerUsername} відхилено.`);
